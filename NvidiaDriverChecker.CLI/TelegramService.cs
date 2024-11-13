@@ -60,7 +60,10 @@ namespace NvidiaDriverChecker.CLI
         {
             var latestVersion = Program.GetLatestDriverVersion();
 
-            if (latestVersion != cachedVersion)
+            Version newVersion = new Version(latestVersion);
+            Version currentVersion = new Version(cachedVersion);
+
+            if (newVersion > currentVersion)
             {
                 cachedVersion = latestVersion;
                 Program.dbManager.SetLastVersion(cachedVersion);
@@ -94,7 +97,7 @@ namespace NvidiaDriverChecker.CLI
             var users = Program.dbManager.GetAllNotifiedUser();
             foreach (var user in users)
             {
-                await botClient.SendTextMessageAsync(user.TelegramID, message, replyMarkup: keyboarduser, parseMode: ParseMode.Markdown);
+                await botClient.SendTextMessageAsync(user.TelegramID, message, replyMarkup: keyboarduser, messageEffectId: "5046509860389126442", parseMode: ParseMode.Markdown);
             }
         }
 

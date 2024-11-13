@@ -56,7 +56,11 @@ namespace NvidiaDriverChecker.CLI
                 string output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
 
-                Console.WriteLine(output.Replace("\r\n",""));
+                Console.Write(output.Replace("\r\n", ""));
+
+                var temp = output.Replace("\r\n", "").Split('|');
+                output = temp[1];
+                Console.WriteLine("     Версия " + output);
                 return output;
             }
         }
