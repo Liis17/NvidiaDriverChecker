@@ -51,7 +51,7 @@ namespace NvidiaDriverChecker.CLI
             {
                 while (true)
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(5));
+                    await Task.Delay(TimeSpan.FromMinutes(30));
                     await UpdateCachedVersionAsync();
                 }
             });
