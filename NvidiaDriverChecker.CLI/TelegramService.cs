@@ -46,7 +46,7 @@ namespace NvidiaDriverChecker.CLI
             await UpdateCachedVersionAsync();
 
             // Запуск периодической проверки версии драйвера
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 while (true)
                 {
@@ -58,7 +58,7 @@ namespace NvidiaDriverChecker.CLI
 
         private async Task UpdateCachedVersionAsync()
         {
-            var latestVersion = Program.GetLatestDriverVersion();
+            var latestVersion = await Program.GetLatestDriverVersion();
 
             Version newVersion = new Version(latestVersion);
             Version currentVersion = new Version(cachedVersion);
@@ -69,36 +69,15 @@ namespace NvidiaDriverChecker.CLI
                 Program.dbManager.SetLastVersion(cachedVersion);
                 lastCheckedTime = DateTime.Now;
 
-                await NotifyChannelAndUsersAsync();
+                await NotifyChannelAsync();
             }
         }
 
-        private async Task NotifyChannelAndUsersAsync()
+        private async Task NotifyChannelAsync()
         {
-            string message = $"🔔 Новая версия драйвера NVIDIA:\n\n      {cachedVersion}\n";
-            var keyboarduser = new InlineKeyboardMarkup(new[]
-            {
-                new[]
-                {
-                    InlineKeyboardButton.WithUrl("🌏 nvidia.com", "https://www.nvidia.com/Download/index.aspx"),
-                    InlineKeyboardButton.WithUrl("🔗 В тг канал", $"https://t.me/{GetChannelUsernameAsync(idChannel).Result}")
-                }
-            });
-            var keyboardchannel = new InlineKeyboardMarkup(new[]
-            {
-                new[]
-                {
-                    InlineKeyboardButton.WithUrl("⬇️ Скачать оригинальный ⬇️", "https://www.nvidia.com/Download/index.aspx"),
-                }
-            });
+            string message = $"🔔 Новая версия драйвера\n```Driver\r\nGeForce Game Ready\r\n{cachedVersion} | WHQL\r\nWindows 10 64-bit, Windows 11\r\n{DateTime.Now.ToString("dd.MM.yyyy")}```";
 
-            await botClient.SendTextMessageAsync(idChannel, message, replyMarkup: keyboardchannel, parseMode: ParseMode.Markdown);
-
-            var users = Program.dbManager.GetAllNotifiedUser();
-            foreach (var user in users)
-            {
-                await botClient.SendTextMessageAsync(user.TelegramID, message, replyMarkup: keyboarduser, messageEffectId: "5046509860389126442", parseMode: ParseMode.Markdown);
-            }
+            await botClient.SendTextMessageAsync(idChannel, message, parseMode: ParseMode.Markdown);
         }
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -130,36 +109,18 @@ namespace NvidiaDriverChecker.CLI
                     await botClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
                     await SendDriverVersionAsync(chatId);
                     break;
-
-                case "toggle_notifications":
-                    if (Program.dbManager.IsNotified(userId))
-                    {
-                        Program.dbManager.DeleteUser(userId);
-                        await botClient.SendTextMessageAsync(chatId, "❌ Уведомления выключены.");
-                    }
-                    else
-                    {
-                        Program.dbManager.AddUser(userId, callbackQuery.From.Username, callbackQuery.From.FirstName);
-                        await botClient.SendTextMessageAsync(chatId, "✅ Уведомления включены.");
-                    }
-                    await SendWelcomeMessageAsync(chatId);
-                    break;
             }
         }
 
         private async Task SendWelcomeMessageAsync(long chatId)
         {
-            string message = $"👋 Добро пожаловать! \nЯ уведомлять о обновлениях драйверов NVIDIA.\n";
+            string message = $"👋 Добро пожаловать! \nЯ могу проверять обновление драйверов NVIDIA и отправлять уведомление об этом в канал @NvidiaNVCleanstallDrivers.\n";
 
             var keyboard = new InlineKeyboardMarkup(new[]
             {
             new[]
             {
                 InlineKeyboardButton.WithCallbackData("✨ Получить", "check_version"),
-            },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData(Program.dbManager.IsNotified(chatId) ? "🔕 Отключить уведомления" : "🔔 Включить уведомления", "toggle_notifications")
             }
         });
 
@@ -174,9 +135,13 @@ namespace NvidiaDriverChecker.CLI
             {
             new[]
             {
-                InlineKeyboardButton.WithUrl("🌏 nvidia.com", "https://www.nvidia.com/Download/index.aspx"),
-                InlineKeyboardButton.WithUrl("🔗 В тг канал", $"https://t.me/{GetChannelUsernameAsync(idChannel).Result}")
-            }, 
+                InlineKeyboardButton.WithUrl("🌏 Сайт Nvidia", "https://www.nvidia.com/Download/index.aspx")
+
+            },
+            new[]
+            {
+                InlineKeyboardButton.WithUrl("🔗 Открыть ТГК", $"https://t.me/{GetChannelUsernameAsync(idChannel).Result}")
+            },
             new[]
             {
                 InlineKeyboardButton.WithCallbackData("🔄️ Обновить", "check_version"),

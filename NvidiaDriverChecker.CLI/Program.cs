@@ -1,7 +1,13 @@
-﻿using NvidiaDriverChecker.CLI.DB;
+﻿using HtmlAgilityPack;
+
+using NvidiaDriverChecker.CLI.DB;
 
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace NvidiaDriverChecker.CLI
 {
@@ -44,24 +50,32 @@ namespace NvidiaDriverChecker.CLI
                 Console.WriteLine(" - Bruh, для выхода Ctrl+C");
             }
         }
-        public static string GetLatestDriverVersion()
+        public async static Task<string> GetLatestDriverVersion()
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo("choco", "info nvidia-display-driver --limit-output");
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
-
-            using (Process process = Process.Start(startInfo))
+            try
             {
-                string output = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
+                string url = "https://www.techpowerup.com/download/nvidia-geforce-graphics-drivers/";
 
-                Console.Write(output.Replace("\r\n", ""));
+                using HttpClient client = new HttpClient();
+                string pageContent = await client.GetStringAsync(url);
 
-                var temp = output.Replace("\r\n", "").Split('|');
-                output = temp[1];
-                Console.WriteLine("     Версия " + output);
-                return output;
+                Match match = Regex.Match(pageContent, @"<title>.*?NVIDIA GeForce Graphics Drivers (\d+\.\d+) WHQL.*?</title>");
+
+                if (match.Success)
+                {
+                    Console.WriteLine("Последняя версия драйвера: " + match.Groups[1].Value);
+                    return match.Groups[1].Value;
+                }
+                else
+                {
+                    Console.WriteLine("Не удалось найти версию драйвера.");
+                    return string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+                return string.Empty;
             }
         }
     }

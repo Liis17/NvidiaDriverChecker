@@ -17,39 +17,9 @@ namespace NvidiaDriverChecker.CLI.DB
         {
             path = dbPath;
             _database = new SQLite.SQLiteConnection(dbPath);
-            _database.CreateTable<NotifiedUsers>();
             _database.CreateTable<ProgramConf>();
 
         }
-
-        #region Users
-        public bool IsNotified(long userid)
-        {
-            var data = _database.Table<NotifiedUsers>().FirstOrDefault(u => u.TelegramID == userid);
-            if (data != null)
-            {
-                return true;
-            }
-            return false;
-        }
-        public void AddUser(long userid, string username, string name)
-        {
-            var data = new NotifiedUsers { TelegramID = userid, TelegramName = name, TelegramUsername = username };
-            _database.Insert(data);
-        }
-        public void DeleteUser(long userid)
-        {
-            var data = _database.Table<NotifiedUsers>().FirstOrDefault(u => u.TelegramID == userid);
-            _database.Delete(data);
-        }
-
-        public List<NotifiedUsers> GetAllNotifiedUser()
-        {
-            var data = _database.Table<NotifiedUsers>();
-            var datalist = data.ToList();
-            return datalist != null ? datalist : new List<NotifiedUsers>();
-        }
-        #endregion
 
         #region Settings
         public bool Exist()
@@ -83,7 +53,7 @@ namespace NvidiaDriverChecker.CLI.DB
         public string GetLastVersion()
         {
             var data = _database.Table<ProgramConf>().FirstOrDefault();
-            return data != null ? data.LastVersion : string.Empty;
+            return data != null ? data.LastVersion : "500.30";
         }
         public void SetLastVersion(string version)
         {
