@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
@@ -48,8 +49,7 @@ namespace NvidiaDriverChecker.CLI
 
             while (true)
             {
-                Console.ReadKey();
-                Console.WriteLine(" - Bruh, для выхода Ctrl+C");
+                Thread.Sleep(10000);
             }
         }
         public async static Task<string> GetLatestDriverVersion()
