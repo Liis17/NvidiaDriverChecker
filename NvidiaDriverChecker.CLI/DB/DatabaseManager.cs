@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-
 namespace NvidiaDriverChecker.CLI.DB
 {
     public class DatabaseManager
